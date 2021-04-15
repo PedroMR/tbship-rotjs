@@ -40,7 +40,7 @@ export class TinyPedro implements Actor {
         if (this.position.equals(playerPosition)) {
             this.game.catchPlayer(this);
         } else if (this.position.equals(this.target)) {
-            this.game.destroyBox(this, this.target.x, this.target.y);
+//            this.game.destroyBox(this, this.target.x, this.target.y);
             this.target = undefined;
         }
 

@@ -88,7 +88,7 @@ export class Game {
     getPlayerPosition(): Point {
         return this.player.position;
     }
-
+/*
     checkBox(x: number, y: number): void {
         switch (this.map.getTileType(x, y)) {
             case Tile.box.type:
@@ -136,7 +136,7 @@ export class Game {
                 break;
         }
     }
-
+*/
     catchPlayer(actor: Actor): void {
         this.messageLog.appendText("Continue with 'spacebar' or 'return'.");
         this.messageLog.appendText(`Game over - you were captured by ${this.getActorName(actor)}!`);
@@ -159,7 +159,7 @@ export class Game {
             this.resetStatusLine();
             this.writeHelpMessage();
         } else {
-            this.statusLine.boxes = 0;
+            this.statusLine.scrap = 0;
         }
         this.gameState.reset();
 
@@ -189,9 +189,9 @@ export class Game {
                 this.statusLine.turns += 1;
                 this.backdrop.step();
             }
-            if (this.gameState.foundPineapple) {
-                this.statusLine.pineapples += 1;
-            }
+            // if (this.gameState.foundPineapple) {
+            //     this.statusLine.pineapples += 1;
+            // }
 
             this.drawPanel();
 
@@ -254,9 +254,9 @@ export class Game {
     }
 
     private createBeings(): void {
-        let numberOfEnemies = 1 + Math.floor(this.statusLine.pineapples / 3.0);
+        // let numberOfEnemies = 1 + Math.floor(this.statusLine.pineapples / 3.0);
         this.enemies = [];
-        let positions = this.map.getRandomTilePositions(TileType.Floor, 1 + numberOfEnemies);
+        // let positions = this.map.getRandomTilePositions(TileType.Floor, 1 + numberOfEnemies);
         this.player = new Player(this, new Point(1, Math.floor(this.mapSize.height/2)));
         
         // this.player = new Player(this, positions.splice(0, 1)[0]);
@@ -271,7 +271,7 @@ export class Game {
 
     private resetStatusLine(): void {
         this.statusLine.reset();
-        this.statusLine.maxBoxes = this.maximumBoxes;
+        // this.statusLine.maxBoxes = this.maximumBoxes;
     }
 
     shoot(x: number, y: number) {
