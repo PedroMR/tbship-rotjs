@@ -56,8 +56,12 @@ export class Map {
 
     draw(): void {
         for (let key in this.map) {
-            if (this.map[key] != Tile.floor)
-                this.game.draw(this.keyToPoint(key), this.map[key].glyph);
+            if (this.map[key] != Tile.floor) {
+                let pos = this.keyToPoint(key);
+                pos.x = pos.x*3 + 1;
+                pos.y = 2;
+                // this.game.draw(pos, this.map[key].glyph);
+            }
         }
     }
 

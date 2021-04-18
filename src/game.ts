@@ -4,7 +4,7 @@ import Simple from "rot-js/lib/scheduler/simple";
 import { Player } from "./player";
 import { Point } from "./point";
 import { Glyph } from "./glyph";
-import { Actor, ActorType } from "./actor";
+import { Actor, ActorType, Team } from "./actor";
 import { Pedro } from "./pedro";
 import { GameState } from "./game-state";
 import { StatusLine } from "./status-line";
@@ -14,6 +14,8 @@ import { Tile, TileType } from "./tile";
 import { Map } from "./map";
 import { Backdrop } from "./backdrop";
 import { TinyPedro } from "./tiny-pedro";
+import { Bullet } from "./bullet";
+import { Enemy } from "./enemy";
 
 export class Game {
     private display: Display;
@@ -21,16 +23,19 @@ export class Game {
     private map: Map;
     private backdrop: Backdrop;
     private statusLine: StatusLine;
-    private messageLog: MessageLog;
+    public messageLog: MessageLog;
 
     private player: Player;
     private enemies: Actor[];
+    private actors: Actor[];
 
+    public gridSize: { width: number, height: number };
+    private cellSize: { width: number, height: number };
     private gameSize: { width: number, height: number };
     private mapSize: { width: number, height: number };
     private statusLinePosition: Point;
     private actionLogPosition: Point;
-    private gameState: GameState;
+    public gameState: GameState;
 
     private pineapplePoint: Point;
     private pedroColor: string;
@@ -39,7 +44,10 @@ export class Game {
     private maximumBoxes = 10;
 
     constructor() {
-        this.mapSize = { width: 75, height: 21 };
+        this.gridSize = { width: 15, height: 7 };
+        this.cellSize = { width: 5, height: 3 };
+        this.mapSize = { width: this.gridSize.width*this.cellSize.width,
+                         height: this.gridSize.height*this.cellSize.height };
         this.gameSize = { width: this.mapSize.width, height: this.mapSize.height + 4 };
         this.statusLinePosition = new Point(0, this.gameSize.height - 4);
         this.actionLogPosition = new Point(0, this.gameSize.height - 3);
@@ -158,13 +166,11 @@ export class Game {
         if (!this.gameState.isGameOver() || this.gameState.doRestartGame()) {
             this.resetStatusLine();
             this.writeHelpMessage();
-        } else {
-            this.statusLine.scrap = 0;
         }
         this.gameState.reset();
 
         this.backdrop.generate(this.mapSize.width, this.mapSize.height);
-        this.map.generateMap(this.mapSize.width, this.mapSize.height);
+        this.map.generateMap(this.gridSize.width, this.gridSize.height);
 
         this.createBeings();
         this.scheduler = new Scheduler.Simple();
@@ -186,12 +192,15 @@ export class Game {
 
             await actor.act();
             if (actor.type === ActorType.Player) {
-                this.statusLine.turns += 1;
+                this.gameState.steps += 1;
                 this.backdrop.step();
+
+                //TODO convert to "director"
+                if (this.gameState.steps % 5 == 0) {
+                    let pos = new Point(this.gridSize.width, 3);                
+                    this.addActor(new Enemy(this, pos));
+                }
             }
-            // if (this.gameState.foundPineapple) {
-            //     this.statusLine.pineapples += 1;
-            // }
 
             this.drawPanel();
 
@@ -208,10 +217,30 @@ export class Game {
         this.map.draw();
         this.statusLine.draw();
         this.messageLog.draw();
-        this.draw(this.player.position, this.player.glyph);
+        this.drawActor(this.player);
+        for (let actor of this.actors) {
+            this.drawActor(actor);
+        }
+
         for (let enemy of this.enemies) {
             this.draw(enemy.position, enemy.glyph);
         }
+    }
+
+    private drawActor(actor : Actor)
+    {
+        let pos = actor.position.clone();
+        pos.x = pos.x * this.cellSize.width + this.cellSize.width/2;
+        pos.y = pos.y * this.cellSize.height + this.cellSize.height/2;
+        
+        if (actor.type == ActorType.Bullet) {
+            if (actor.team == Team.Player)
+                pos.x--;
+            else
+                pos.x++;
+        }
+
+        this.draw(pos, actor.glyph);
     }
 
     private handleInput(event: KeyboardEvent): boolean {
@@ -256,8 +285,9 @@ export class Game {
     private createBeings(): void {
         // let numberOfEnemies = 1 + Math.floor(this.statusLine.pineapples / 3.0);
         this.enemies = [];
+        this.actors = [];
         // let positions = this.map.getRandomTilePositions(TileType.Floor, 1 + numberOfEnemies);
-        this.player = new Player(this, new Point(1, Math.floor(this.mapSize.height/2)));
+        this.player = new Player(this, new Point(1, Math.floor(this.gridSize.height/2)));
         
         // this.player = new Player(this, positions.splice(0, 1)[0]);
         // for (let position of positions) {
@@ -274,7 +304,31 @@ export class Game {
         // this.statusLine.maxBoxes = this.maximumBoxes;
     }
 
-    shoot(x: number, y: number) {
-        throw new Error("Method not implemented.");
+    shoot(x: number, y: number, team: Team) {
+        let bullet = new Bullet(this, new Point(x-1,y), team);
+        bullet.glyph = new Glyph("-", "#fff");
+        this.addActor(bullet);
     }        
+
+    addActor(actor:Actor) {
+        this.actors.push(actor);
+        this.scheduler.add(actor, true);
+    }
+
+    removeActor(actor: Actor) {
+        let index = this.actors.indexOf(actor);
+        if (index >= 0)
+            this.actors.splice(index, 1);
+        this.scheduler.remove(actor);
+    }
+
+    getActorsAtPosition(position: Point) {
+        let actorsThere = []
+        this.actors.forEach(actor => {
+            if(actor && actor.position.equals(position))
+                actorsThere.push(actor);
+        });
+        return actorsThere;
+    }
+
 }

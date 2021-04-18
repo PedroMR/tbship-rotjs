@@ -8,10 +8,17 @@ export const enum ActorType {
     Bullet
 }
 
+export const enum Team {
+    Player,
+    Enemies
+}
+
 export interface Actor {
     position: Point;
     glyph: Glyph;
     type: ActorType;
+    team: Team;
 
     act(): Promise<any>;
+    kill(): void;
 }

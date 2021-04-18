@@ -12,4 +12,8 @@ export class Point {
     toString(): string {
         return this.toKey();
     }
+
+    clone() {
+        return new Point(this.x,this.y);
+    }
 }

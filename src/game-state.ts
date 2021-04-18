@@ -3,6 +3,7 @@ export class GameState {
     pineappleWasDestroyed: boolean;
     playerWasCaught: boolean;
     steps: number;
+    scrap: any;
 
     constructor() {
         this.reset();
@@ -10,6 +11,7 @@ export class GameState {
 
     reset(): void {
         this.steps = 0;
+        this.scrap = 0;
         this.foundPineapple = false;
         this.pineappleWasDestroyed = false;
         this.playerWasCaught = false;

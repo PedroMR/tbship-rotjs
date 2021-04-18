@@ -1,6 +1,6 @@
 import { Path } from "rot-js";
 import { Game } from "./game";
-import { Actor, ActorType } from "./actor";
+import { Actor, ActorType, Team } from "./actor";
 import { Point } from "./point";
 import { Glyph } from "./glyph";
 import { Tile } from "./tile";
@@ -10,10 +10,15 @@ export class TinyPedro implements Actor {
     type: ActorType;
     private target: Point;
     private path: Point[];
+    team: Team;
 
     constructor(private game: Game, public position: Point) {
         this.glyph = new Glyph("p", "#00f", "");
         this.type = ActorType.TinyPedro;
+        this.team = Team.Enemies;
+    }
+    kill(): void {
+        throw new Error("Method not implemented.");
     }
 
     act(): Promise<any> {
